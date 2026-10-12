@@ -1,0 +1,42 @@
+<Window x:Class="CalendarWork.App.Views.LockBadgeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:CalendarWork.App.ViewModels"
+        xmlns:behaviors="clr-namespace:CalendarWork.App.Views.Behaviors"
+        mc:Ignorable="d"
+        DataContext="{Binding Main, Source={StaticResource Locator}}"
+        d:DataContext="{d:DesignInstance vm:MainViewModel}"
+        behaviors:WindowBehaviors.HideFromAltTab="True"
+        Title="CalendarWork.LockBadge"
+        Width="30" Height="30"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        ResizeMode="NoResize"
+        Cursor="Hand"
+        ToolTip="클릭하면 편집 모드 (Ctrl+Alt+D)">
+
+    <!-- 잠금 모드에서 달력은 클릭 투과라 입력을 못 받으므로, 이 작은 창만 클릭을 받아 편집 모드로 전환한다 -->
+    <Border CornerRadius="6" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1"
+            Background="{DynamicResource BackgroundBrush}">
+        <Border.InputBindings>
+            <MouseBinding Gesture="LeftClick" Command="{Binding UnlockCommand}" />
+        </Border.InputBindings>
+        <Border.Style>
+            <Style TargetType="Border">
+                <Setter Property="Opacity" Value="0.55" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Opacity" Value="1" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+        <TextBlock Text="🔒" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"
+                   Foreground="{DynamicResource ForegroundBrush}" />
+    </Border>
+</Window>

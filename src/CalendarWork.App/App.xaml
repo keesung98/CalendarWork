@@ -1,0 +1,37 @@
+<Application x:Class="CalendarWork.App.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:CalendarWork.App.ViewModels"
+             xmlns:views="clr-namespace:CalendarWork.App.Views"
+             ShutdownMode="OnExplicitShutdown">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- 0번: 색상 테마 (ThemeService가 교체), 1번: 컨트롤 스타일 -->
+                <ResourceDictionary Source="Themes/Dark.xaml" />
+                <ResourceDictionary Source="Themes/Controls.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- 창들은 DataContext="{Binding Main, Source={StaticResource Locator}}" 처럼 여기서 ViewModel을 받는다 -->
+            <vm:ViewModelLocator x:Key="Locator" />
+
+            <!--
+                트레이 아이콘 우클릭 메뉴. DesktopHost는 띄우기만 하고, 항목은 MainViewModel 명령에 바인딩된다.
+                Locator를 StaticResource로 참조해야 하므로 별도 파일(병합 사전)이 아니라 여기에 둔다.
+            -->
+            <views:BoolToTextConverter x:Key="LockMenuText" TrueText="잠금 모드로 전환" FalseText="편집 모드로 전환" />
+            <views:BoolToTextConverter x:Key="TodoMenuText" TrueText="할일 패널 숨기기" FalseText="할일 패널 보이기" />
+            <ContextMenu x:Key="TrayMenu" Placement="MousePoint"
+                         DataContext="{Binding Main, Source={StaticResource Locator}}">
+                <MenuItem Header="{Binding IsEditMode, Converter={StaticResource LockMenuText}}"
+                          InputGestureText="Ctrl+Alt+D" Command="{Binding ToggleLockCommand}" />
+                <MenuItem Header="오늘로 이동" Command="{Binding GoTodayCommand}" />
+                <MenuItem Header="{Binding IsTodoPanelVisible, Converter={StaticResource TodoMenuText}}"
+                          InputGestureText="Ctrl+Alt+T" Command="{Binding ToggleTodoPanelCommand}" />
+                <MenuItem Header="설정…" Command="{Binding OpenSettingsCommand}" />
+                <Separator />
+                <MenuItem Header="종료" Command="{Binding ExitCommand}" />
+            </ContextMenu>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

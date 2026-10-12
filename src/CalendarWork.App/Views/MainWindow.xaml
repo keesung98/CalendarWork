@@ -1,0 +1,417 @@
+﻿<Window x:Class="CalendarWork.App.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:CalendarWork.App.ViewModels"
+        xmlns:behaviors="clr-namespace:CalendarWork.App.Views.Behaviors"
+        mc:Ignorable="d"
+        DataContext="{Binding Main, Source={StaticResource Locator}}"
+        d:DataContext="{d:DesignInstance vm:MainViewModel}"
+        behaviors:WindowBehaviors.HideFromAltTab="True"
+        behaviors:WindowBehaviors.DragMoveEnabled="{Binding CanDragWindow}"
+        behaviors:WindowBehaviors.CtrlClickCommand="{Binding LockCommand}"
+        Title="CalendarWork"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
+        ResizeMode="{Binding IsEditMode, Converter={StaticResource EditModeToResizeMode}}"
+        MinWidth="420" MinHeight="320"
+        FontFamily="Malgun Gothic"
+        Foreground="{DynamicResource ForegroundBrush}"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
+
+    <Window.InputBindings>
+        <KeyBinding Key="Left" Modifiers="Alt" Command="{Binding PreviousMonthCommand}" />
+        <KeyBinding Key="Right" Modifiers="Alt" Command="{Binding NextMonthCommand}" />
+        <KeyBinding Key="Home" Modifiers="Alt" Command="{Binding GoTodayCommand}" />
+    </Window.InputBindings>
+
+    <Grid>
+        <!-- 배경: 투명도는 배경에만 적용해 글자는 선명하게 유지 (그림자/블러 대신 반투명 면) -->
+        <Border CornerRadius="10"
+                Background="{DynamicResource BackgroundBrush}"
+                Opacity="{Binding BackgroundOpacity}" />
+
+        <!-- 편집 모드 표시: 점선 테두리 -->
+        <Rectangle RadiusX="10" RadiusY="10"
+                   Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5" StrokeDashArray="4 3"
+                   IsHitTestVisible="False"
+                   Visibility="{Binding IsEditMode, Converter={StaticResource BoolToVisible}}" />
+
+        <Grid Margin="16,12,16,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <DockPanel>
+                <!-- 헤더 -->
+                <Grid DockPanel.Dock="Top" Margin="2,0,0,8" Background="Transparent">
+                    <StackPanel>
+                        <TextBlock Text="{Binding Title}" FontSize="24" FontWeight="Bold" />
+                        <TextBlock Margin="0,2,0,0" FontSize="13" Foreground="{DynamicResource TodayBrush}"
+                                   Text="{Binding DDayText}" Cursor="Hand"
+                                   Visibility="{Binding DDayText, Converter={StaticResource NullToCollapsed}}">
+                            <TextBlock.InputBindings>
+                                <MouseBinding Gesture="LeftClick" Command="{Binding EditDDayCommand}" />
+                            </TextBlock.InputBindings>
+                        </TextBlock>
+                        <TextBlock Margin="0,2,0,0" Text="+ D-day 추가" Style="{StaticResource SubtleText}" Cursor="Hand"
+                                   Visibility="{Binding ShowAddDDay, Converter={StaticResource BoolToVisible}}">
+                            <TextBlock.InputBindings>
+                                <MouseBinding Gesture="LeftClick" Command="{Binding EditDDayCommand}" />
+                            </TextBlock.InputBindings>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Visibility="{Binding IsEditMode, Converter={StaticResource BoolToVisible}}">
+                        <Button Style="{StaticResource ToolButton}" Content="◀" ToolTip="이전 달 (Alt+←)" Command="{Binding PreviousMonthCommand}" />
+                        <Button Style="{StaticResource ToolButton}" Content="오늘" ToolTip="오늘 (Alt+Home)" Command="{Binding GoTodayCommand}" />
+                        <Button Style="{StaticResource ToolButton}" Content="▶" ToolTip="다음 달 (Alt+→)" Command="{Binding NextMonthCommand}" />
+                        <Button Style="{StaticResource ToolButton}" Content="↻" ToolTip="반복 일정" Command="{Binding OpenRecurrencesCommand}" Margin="8,0,0,0" />
+                        <Button Style="{StaticResource ToolButton}" Content="☑" ToolTip="할일 패널 (Ctrl+Alt+T)" Command="{Binding ToggleTodoPanelCommand}" />
+                        <Button Style="{StaticResource ToolButton}" Content="⚙" ToolTip="설정" Command="{Binding OpenSettingsCommand}" />
+                        <Button Style="{StaticResource ToolButton}" Content="🔒" ToolTip="잠금 (Ctrl+Alt+D · 편집 모드에서 Ctrl+클릭)" Command="{Binding LockCommand}" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- 요일 헤더 -->
+                <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding WeekdayNames}" Margin="0,0,0,4" Focusable="False">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="7" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock x:Name="Name" Text="{Binding}" Margin="5,0" FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource SubtleBrush}" />
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding}" Value="일">
+                                    <Setter TargetName="Name" Property="Foreground" Value="{DynamicResource HolidayBrush}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding}" Value="토">
+                                    <Setter TargetName="Name" Property="Foreground" Value="{DynamicResource SaturdayBrush}" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- 42칸 그리드: 셀 VM 재사용, 템플릿은 얕게 -->
+                <ItemsControl x:Name="CalendarGrid" ItemsSource="{Binding Cells}" Focusable="False"
+                              behaviors:MouseWheelBehavior.UpCommand="{Binding PreviousMonthCommand}"
+                              behaviors:MouseWheelBehavior.DownCommand="{Binding NextMonthCommand}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Rows="6" Columns="7" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:DayCellViewModel}">
+                            <!-- 마우스를 올리면 칸의 전체 내용 미리보기 (내용 없으면 PreviewText=null → 툴팁 없음) -->
+                            <Border x:Name="Cell" Margin="1" Padding="5,3" CornerRadius="5"
+                                    Background="Transparent" BorderThickness="1"
+                                    BorderBrush="{DynamicResource LineBrush}"
+                                    ToolTip="{Binding PreviewText}"
+                                    ToolTipService.InitialShowDelay="300"
+                                    ToolTipService.ShowDuration="60000">
+                                <Border.InputBindings>
+                                    <MouseBinding Gesture="LeftDoubleClick"
+                                                  Command="{Binding DataContext.EditMemoCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                  CommandParameter="{Binding}" />
+                                </Border.InputBindings>
+                                <DockPanel>
+                                    <DockPanel DockPanel.Dock="Top">
+                                        <TextBlock x:Name="Day" Text="{Binding DayText}" FontSize="14" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding LunarText}" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource SubtleBrush}" />
+                                    </DockPanel>
+                                    <TextBlock DockPanel.Dock="Top" Text="{Binding HolidayName}" FontSize="10"
+                                               Foreground="{DynamicResource HolidayBrush}" TextTrimming="CharacterEllipsis"
+                                               Visibility="{Binding HolidayName, Converter={StaticResource NullToCollapsed}}" />
+                                    <TextBlock DockPanel.Dock="Bottom" Text="{Binding MoreText}" Style="{StaticResource SubtleText}" FontSize="10"
+                                               Visibility="{Binding MoreText, Converter={StaticResource NullToCollapsed}}" />
+                                    <ItemsControl ItemsSource="{Binding Lines}" Focusable="False" Margin="0,1,0,0">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type vm:CellLine}">
+                                                <TextBlock Text="{Binding Text}" Foreground="{Binding Color, Converter={StaticResource MemoColorToBrush}}" FontSize="11"
+                                                           TextTrimming="CharacterEllipsis" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </DockPanel>
+                            </Border>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding Kind}" Value="Sunday">
+                                    <Setter TargetName="Day" Property="Foreground" Value="{DynamicResource HolidayBrush}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Kind}" Value="Holiday">
+                                    <Setter TargetName="Day" Property="Foreground" Value="{DynamicResource HolidayBrush}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Kind}" Value="Saturday">
+                                    <Setter TargetName="Day" Property="Foreground" Value="{DynamicResource SaturdayBrush}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsCurrentMonth}" Value="False">
+                                    <Setter TargetName="Cell" Property="Opacity" Value="0.4" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsToday}" Value="True">
+                                    <Setter TargetName="Cell" Property="BorderBrush" Value="{DynamicResource TodayBrush}" />
+                                    <Setter TargetName="Cell" Property="BorderThickness" Value="2" />
+                                    <Setter TargetName="Cell" Property="Background" Value="{DynamicResource TodayBackgroundBrush}" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </DockPanel>
+
+            <!-- 할일 패널 (접이식) -->
+            <Border Grid.Column="1" Width="230" Margin="14,0,0,0" Padding="0,4,0,0"
+                    BorderBrush="{DynamicResource LineBrush}" BorderThickness="1,0,0,0"
+                    Visibility="{Binding IsTodoPanelVisible, Converter={StaticResource BoolToVisible}}">
+                <DockPanel Margin="12,0,0,0">
+                    <TextBlock DockPanel.Dock="Top" Text="할일" FontSize="16" FontWeight="Bold" Margin="0,4,0,8" />
+
+                    <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0"
+                                Visibility="{Binding IsEditMode, Converter={StaticResource BoolToVisible}}">
+                        <TextBox x:Name="NewTodoBox" Style="{StaticResource InputBox}"
+                                 Text="{Binding NewTodoText, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="할일 입력 후 Enter">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding AddTodoCommand, Converter={StaticResource ImeSafe}}" />
+                            </TextBox.InputBindings>
+                        </TextBox>
+                        <DockPanel Margin="0,4,0,0">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Content="추가"
+                                    Command="{Binding AddTodoCommand, Converter={StaticResource ImeSafe}}" Margin="6,0,0,0" />
+                            <DatePicker x:Name="NewTodoDuePicker" SelectedDate="{Binding NewTodoDue}" ToolTip="마감일 (선택)" FontSize="12" />
+                        </DockPanel>
+                    </StackPanel>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
+                        <ItemsControl ItemsSource="{Binding Todos}" Focusable="False">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:TodoItemViewModel}">
+                                    <Grid>
+                                        <!-- 보기: 체크 · 내용 · 마감일 · (편집 모드 + 마우스 오버 시) ▲▼✎✕ -->
+                                        <DockPanel x:Name="Row" Margin="0,2" Background="Transparent">
+                                            <StackPanel x:Name="Actions" DockPanel.Dock="Right" Orientation="Horizontal" Visibility="Collapsed">
+                                                <Button Style="{StaticResource ToolButton}" Content="▲" FontSize="9" Padding="3,1" MinWidth="0" ToolTip="위로"
+                                                        Command="{Binding DataContext.MoveTodoUpCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}" />
+                                                <Button Style="{StaticResource ToolButton}" Content="▼" FontSize="9" Padding="3,1" MinWidth="0" ToolTip="아래로"
+                                                        Command="{Binding DataContext.MoveTodoDownCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}" />
+                                                <Button Style="{StaticResource ToolButton}" Content="✎" FontSize="11" Padding="3,1" MinWidth="0" ToolTip="수정"
+                                                        Command="{Binding DataContext.BeginEditTodoCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}" />
+                                                <Button Style="{StaticResource ToolButton}" Content="✕" FontSize="10" Padding="3,1" MinWidth="0" ToolTip="삭제"
+                                                        Command="{Binding DataContext.DeleteTodoCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}" />
+                                            </StackPanel>
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding DueText}" Style="{StaticResource SubtleText}"
+                                                       VerticalAlignment="Center" Margin="4,0" />
+                                            <CheckBox x:Name="Check" IsChecked="{Binding Done}" VerticalContentAlignment="Center"
+                                                      Foreground="{DynamicResource ForegroundBrush}" Focusable="False">
+                                                <TextBlock x:Name="Text" Text="{Binding Text}" TextTrimming="CharacterEllipsis" FontSize="12"
+                                                           ToolTip="{Binding Text}" />
+                                            </CheckBox>
+                                        </DockPanel>
+
+                                        <!-- 편집: 내용 · 마감일 -->
+                                        <StackPanel x:Name="Editor" Margin="0,2,0,6" Visibility="Collapsed">
+                                            <TextBox AutomationProperties.AutomationId="TodoEditBox" Style="{StaticResource InputBox}" Text="{Binding EditText, UpdateSourceTrigger=PropertyChanged}"
+                                                     behaviors:FocusBehavior.IsFocused="{Binding IsEditing}">
+                                                <TextBox.InputBindings>
+                                                    <KeyBinding Key="Enter" CommandParameter="{Binding}"
+                                                                Command="{Binding DataContext.CommitEditTodoCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource ImeSafe}}" />
+                                                    <KeyBinding Key="Escape" CommandParameter="{Binding}"
+                                                                Command="{Binding DataContext.CancelEditTodoCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                                                </TextBox.InputBindings>
+                                            </TextBox>
+                                            <DockPanel Margin="0,4,0,0">
+                                                <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Content="저장" Padding="10,4" Margin="4,0,0,0"
+                                                        Command="{Binding DataContext.CommitEditTodoCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource ImeSafe}}"
+                                                        CommandParameter="{Binding}" />
+                                                <Button DockPanel.Dock="Right" Style="{StaticResource ToolButton}" Content="취소"
+                                                        Command="{Binding DataContext.CancelEditTodoCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}" />
+                                                <DatePicker SelectedDate="{Binding EditDue}" ToolTip="마감일 (지우면 마감 없음)" FontSize="12" />
+                                            </DockPanel>
+                                        </StackPanel>
+                                    </Grid>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Done}" Value="True">
+                                            <Setter TargetName="Text" Property="TextDecorations" Value="Strikethrough" />
+                                            <Setter TargetName="Check" Property="Opacity" Value="0.5" />
+                                        </DataTrigger>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsMouseOver, ElementName=Row}" Value="True" />
+                                                <Condition Binding="{Binding DataContext.IsEditMode, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter TargetName="Actions" Property="Visibility" Value="Visible" />
+                                        </MultiDataTrigger>
+                                        <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                            <Setter TargetName="Row" Property="Visibility" Value="Collapsed" />
+                                            <Setter TargetName="Editor" Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- 메모 편집기 (인라인 오버레이) -->
+        <Grid Background="{DynamicResource OverlayBrush}"
+              Visibility="{Binding MemoEditor, Converter={StaticResource NullToCollapsed}}">
+            <Border Style="{StaticResource DialogPanel}" Width="360" MaxHeight="440" DataContext="{Binding MemoEditor}">
+                <Border.InputBindings>
+                    <KeyBinding Key="Enter" Modifiers="Ctrl" Command="{Binding SaveCommand, Converter={StaticResource ImeSafe}}" />
+                    <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
+                </Border.InputBindings>
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="{Binding Header}" FontSize="16" FontWeight="Bold" Margin="0,0,0,4" />
+                    <TextBlock DockPanel.Dock="Top" Text="● 를 눌러 색상 변경 · Ctrl+Enter 저장 · Esc 취소" Style="{StaticResource SubtleText}" Margin="0,0,0,10" />
+                    <DockPanel DockPanel.Dock="Bottom" Margin="0,12,0,0" LastChildFill="False">
+                        <Button DockPanel.Dock="Left" Style="{StaticResource ToolButton}" Content="+ 메모 추가" Command="{Binding AddLineCommand}" />
+                        <Button DockPanel.Dock="Left" Style="{StaticResource ToolButton}" Content="↻ 반복 일정" ToolTip="이 날짜부터 반복되는 일정 만들기"
+                                Command="{Binding DataContext.OpenRecurrencesCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                CommandParameter="{Binding}" />
+                        <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Content="저장" Command="{Binding SaveCommand, Converter={StaticResource ImeSafe}}" Margin="6,0,0,0" />
+                        <Button DockPanel.Dock="Right" Style="{StaticResource ToolButton}" Content="취소" Command="{Binding CancelCommand}" />
+                    </DockPanel>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Lines}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:MemoLineViewModel}">
+                                    <DockPanel Margin="0,0,0,6">
+                                        <Button DockPanel.Dock="Left" Style="{StaticResource ToolButton}" Padding="4" VerticalAlignment="Top"
+                                                ToolTip="색상 변경" Command="{Binding CycleColorCommand}">
+                                            <Ellipse Width="12" Height="12" Fill="{Binding Color, Converter={StaticResource MemoColorToBrush}}" />
+                                        </Button>
+                                        <Button DockPanel.Dock="Right" Style="{StaticResource ToolButton}" Content="✕" FontSize="10" VerticalAlignment="Top"
+                                                ToolTip="삭제"
+                                                Command="{Binding DataContext.RemoveLineCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}" />
+                                        <TextBox Style="{StaticResource InputBox}" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
+                                                 Foreground="{Binding Color, Converter={StaticResource MemoColorToBrush}}" AcceptsReturn="True" TextWrapping="Wrap"
+                                                 MinHeight="26" MaxHeight="120" VerticalScrollBarVisibility="Auto"
+                                                 behaviors:FocusBehavior.IsFocused="{Binding IsFocusRequested}" />
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- D-day 편집기 -->
+        <Grid Background="{DynamicResource OverlayBrush}"
+              Visibility="{Binding DDayEditor, Converter={StaticResource NullToCollapsed}}">
+            <Border Style="{StaticResource DialogPanel}" Width="300" DataContext="{Binding DDayEditor}">
+                <Border.InputBindings>
+                    <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
+                </Border.InputBindings>
+                <StackPanel>
+                    <TextBlock Text="D-day" FontSize="16" FontWeight="Bold" Margin="0,0,0,10" />
+                    <TextBlock Text="제목" Style="{StaticResource SubtleText}" />
+                    <TextBox x:Name="DDayTitleBox" Style="{StaticResource InputBox}" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding SaveCommand, Converter={StaticResource ImeSafe}}" />
+                        </TextBox.InputBindings>
+                    </TextBox>
+                    <TextBlock Text="날짜" Style="{StaticResource SubtleText}" />
+                    <DatePicker x:Name="DDayDatePicker" SelectedDate="{Binding Target}" Margin="0,2,0,0" />
+                    <CheckBox Content="음력으로 매년 반복 (생일·제사)" IsChecked="{Binding IsLunar}" Margin="0,10,0,0"
+                              Foreground="{DynamicResource ForegroundBrush}" />
+                    <TextBlock Text="{Binding LunarText}" Style="{StaticResource SubtleText}" Margin="20,3,0,0" TextWrapping="Wrap"
+                               Visibility="{Binding LunarText, Converter={StaticResource NullToCollapsed}}" />
+                    <DockPanel Margin="0,14,0,0" LastChildFill="False">
+                        <Button DockPanel.Dock="Left" Style="{StaticResource ToolButton}" Content="삭제" Command="{Binding DeleteCommand}"
+                                Foreground="{DynamicResource HolidayBrush}"
+                                Visibility="{Binding CanDelete, Converter={StaticResource BoolToVisible}}" />
+                        <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Content="저장" Command="{Binding SaveCommand, Converter={StaticResource ImeSafe}}" Margin="6,0,0,0" />
+                        <Button DockPanel.Dock="Right" Style="{StaticResource ToolButton}" Content="취소" Command="{Binding CancelCommand}" />
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- 반복 일정 편집기 (메모 편집기 위에 겹쳐 열릴 수 있으므로 가장 뒤에 둔다) -->
+        <Grid Background="{DynamicResource OverlayBrush}"
+              Visibility="{Binding RecurrenceEditor, Converter={StaticResource NullToCollapsed}}">
+            <Border Style="{StaticResource DialogPanel}" Width="380" MaxHeight="480" DataContext="{Binding RecurrenceEditor}">
+                <Border.InputBindings>
+                    <KeyBinding Key="Escape" Command="{Binding CloseCommand}" />
+                </Border.InputBindings>
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="반복 일정" FontSize="16" FontWeight="Bold" Margin="0,0,0,10" />
+
+                    <!-- 새 반복 일정 -->
+                    <StackPanel DockPanel.Dock="Top">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Left" Style="{StaticResource ToolButton}" Padding="4" ToolTip="색상 변경"
+                                    Command="{Binding CycleColorCommand}">
+                                <Ellipse Width="12" Height="12" Fill="{Binding NewColor, Converter={StaticResource MemoColorToBrush}}" />
+                            </Button>
+                            <TextBox x:Name="RecurrenceTitleBox" Style="{StaticResource InputBox}" Text="{Binding NewTitle, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="제목 (예: 할머니 생신, 월세)">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Enter" Command="{Binding AddCommand, Converter={StaticResource ImeSafe}}" />
+                                </TextBox.InputBindings>
+                            </TextBox>
+                        </DockPanel>
+                        <DockPanel Margin="0,6,0,0">
+                            <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Content="추가" Margin="6,0,0,0"
+                                    Command="{Binding AddCommand, Converter={StaticResource ImeSafe}}" />
+                            <ComboBox x:Name="RecurrenceRuleCombo" DockPanel.Dock="Left" Width="90" Margin="0,0,6,0"
+                                      ItemsSource="{Binding RuleOptions}" SelectedIndex="{Binding NewRuleIndex}" />
+                            <DatePicker x:Name="RecurrenceDatePicker" SelectedDate="{Binding NewAnchor}" ToolTip="시작 날짜 (양력으로 선택, 음력 매년이면 그날의 음력 날짜로 반복)" />
+                        </DockPanel>
+                        <TextBlock Text="{Binding NewDescription}" Style="{StaticResource SubtleText}" Margin="2,4,0,0" />
+                    </StackPanel>
+
+                    <DockPanel DockPanel.Dock="Bottom" Margin="0,12,0,0" LastChildFill="False">
+                        <Button DockPanel.Dock="Right" Style="{StaticResource ToolButton}" Content="닫기" Command="{Binding CloseCommand}" />
+                    </DockPanel>
+
+                    <Border BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Margin="0,12,0,0" Padding="0,8,0,0">
+                        <Grid>
+                            <TextBlock Text="등록된 반복 일정이 없습니다." Style="{StaticResource SubtleText}"
+                                       Visibility="{Binding Items.Count, Converter={StaticResource ZeroToVisible}}" />
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding Items}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type vm:RecurrenceItemViewModel}">
+                                            <DockPanel Margin="0,2">
+                                                <Button DockPanel.Dock="Right" Style="{StaticResource ToolButton}" Content="✕" FontSize="10" ToolTip="삭제"
+                                                        Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}" />
+                                                <Ellipse DockPanel.Dock="Left" Width="8" Height="8" Fill="{Binding Color, Converter={StaticResource MemoColorToBrush}}" Margin="2,0,8,0" />
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Title}" FontSize="12" TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Text="{Binding Description}" Style="{StaticResource SubtleText}" />
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

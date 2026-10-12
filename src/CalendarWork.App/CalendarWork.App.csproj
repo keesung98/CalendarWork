@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>CalendarWork</AssemblyName>
+    <RootNamespace>CalendarWork.App</RootNamespace>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- 버전은 여기 한 곳에서 관리한다 (설치 프로그램도 이 값을 읽는다) -->
+    <Version>1.0.0</Version>
+    <Product>CalendarWork</Product>
+    <Authors>kschoi</Authors>
+    <Company>kschoi</Company>
+    <Description>바탕화면 달력·할일 위젯</Description>
+    <Copyright>Copyright © 2026</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CalendarWork.Core\CalendarWork.Core.csproj" />
+    <ProjectReference Include="..\CalendarWork.Data\CalendarWork.Data.csproj" />
+    <ProjectReference Include="..\CalendarWork.Interop\CalendarWork.Interop.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Assets\app.ico" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

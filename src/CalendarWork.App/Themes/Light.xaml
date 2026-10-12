@@ -1,0 +1,26 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    mc:Ignorable="po">
+    <!-- Light 테마. 모든 브러시 Freeze (렌더링 비용·변경 감시 제거) -->
+    <SolidColorBrush x:Key="BackgroundBrush" Color="#FFFFFFFF" po:Freeze="True" />
+    <SolidColorBrush x:Key="ForegroundBrush" Color="#FF1F2328" po:Freeze="True" />
+    <SolidColorBrush x:Key="SubtleBrush" Color="#FF6E7781" po:Freeze="True" />
+    <SolidColorBrush x:Key="HolidayBrush" Color="#FFD32F2F" po:Freeze="True" />
+    <SolidColorBrush x:Key="SaturdayBrush" Color="#FF1E63C8" po:Freeze="True" />
+    <SolidColorBrush x:Key="TodayBrush" Color="#FFE68A00" po:Freeze="True" />
+    <SolidColorBrush x:Key="TodayBackgroundBrush" Color="#26FFB300" po:Freeze="True" />
+    <SolidColorBrush x:Key="PanelBrush" Color="#FFFBFBFC" po:Freeze="True" />
+    <SolidColorBrush x:Key="LineBrush" Color="#26000000" po:Freeze="True" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#FF1E63C8" po:Freeze="True" />
+    <SolidColorBrush x:Key="HoverBrush" Color="#14000000" po:Freeze="True" />
+    <SolidColorBrush x:Key="InputBrush" Color="#FFF1F3F5" po:Freeze="True" />
+    <SolidColorBrush x:Key="OverlayBrush" Color="#66000000" po:Freeze="True" />
+
+    <!-- 메모 색상 4종: 기본 / 빨강 / 초록 / 파랑 -->
+    <SolidColorBrush x:Key="MemoBrush0" Color="#FF2B2B2B" po:Freeze="True" />
+    <SolidColorBrush x:Key="MemoBrush1" Color="#FFC62828" po:Freeze="True" />
+    <SolidColorBrush x:Key="MemoBrush2" Color="#FF2E7D32" po:Freeze="True" />
+    <SolidColorBrush x:Key="MemoBrush3" Color="#FF1565C0" po:Freeze="True" />
+</ResourceDictionary>

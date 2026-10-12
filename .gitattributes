@@ -1,0 +1,5 @@
+# 줄바꿈 통일 (저장소에는 LF, Windows 작업 폴더에서는 CRLF)
+* text=auto
+
+*.ico binary
+*.png binary
